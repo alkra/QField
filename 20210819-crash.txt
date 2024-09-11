@@ -1,0 +1,96 @@
+Note : There are lots of messages "QML Row", and it does not seem to signal any serious problem.
+
+Note : Of course, the first thread inspected by GDB is irrelevant, it halts at various places in FeatureExpressionValuesGatherer.  Other threads seems to be paused waiting for various I/O operation, and I did not bother to inspected them.
+
+GDB Log (redacted to add a new line before gdb commands) :
+
+...
+[New Thread 0x7fff2ffff700 (LWP 6833)]
+[Thread 0x7fff527fc700 (LWP 6829) exited]
+[Thread 0x7fff2f7fe700 (LWP 6832) exited]
+qrc:/qml/editorwidgets/Range.qml:21:3: QML Row: Cannot specify left, right, horizontalCenter, fill or centerIn anchors for items inside Row. Row will not function.
+qrc:/qml/editorwidgets/Range.qml:21:3: QML Row: Cannot specify left, right, horizontalCenter, fill or centerIn anchors for items inside Row. Row will not function.
+[Thread 0x7fff6affb700 (LWP 6796) exited]
+[Thread 0x7fff6b7fc700 (LWP 6797) exited]
+[Thread 0x7fff69ff9700 (LWP 6801) exited]
+QThread: Destroyed while thread is still running
+[Thread 0x7fff697f8700 (LWP 6802) exited]
+--Type <RET> for more, q to quit, c to continue without paging--
+
+Thread 65 "FeatureExpressi" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0x7fff50ff9700 (LWP 6830)]
+0x0000555500000001 in ?? ()
+
+(gdb) bt
+#0  0x0000555500000001 in  ()
+#1  0x00007ffff5beddc2 in QgsExpressionPrivate::QgsExpressionPrivate(QgsExpressionPrivate const&) (this=0x7fff340084e0, other=...) at /home/alban/QGIS/src/core/expression/qgsexpression_p.h:44
+#2  0x00007ffff5bdd61a in QgsExpression::detach() (this=0x55556581be50) at /home/alban/QGIS/src/core/expression/qgsexpression.cpp:313
+#3  0x00007ffff5bdd715 in QgsExpression::prepare(QgsExpressionContext const*) (this=0x55556581be50, context=0x55556581be58) at /home/alban/QGIS/src/core/expression/qgsexpression.cpp:328
+#4  0x000055555565173a in FeatureExpressionValuesGatherer::run() (this=0x55556581be30) at /home/alban/QField/build-master/src/core/qfield_core_autogen/EWIEGA46WW/../../../../../src/core/fieldexpressionvaluesgatherer.h:93
+#5  0x00007ffff189cbe1 in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#6  0x00007fffecd4aea7 in start_thread (arg=<optimized out>) at pthread_create.c:477
+#7  0x00007ffff13dedef in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:95
+
+(gdb) info threads
+  Id   Target Id                                          Frame
+  1    Thread 0x7fffe427a340 (LWP 6763) "qfield"          __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:50
+  2    Thread 0x7fffd763a700 (LWP 6764) "QXcbEventQueue"  0x00007ffff13d43ff in __GI___poll (fds=0x7fffd7638168, nfds=1, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+  3    Thread 0x7fffced0e700 (LWP 6765) "QCA::KeyStoreTh" 0x00007ffff13d43ff in __GI___poll (fds=0x7fffc8004e50, nfds=1, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+  4    Thread 0x7fffce3ba700 (LWP 6766) "Qt bearer threa" 0x00007ffff13d43ff in __GI___poll (fds=0x7fffc0004a60, nfds=1, timeout=9999) at ../sysdeps/unix/sysv/linux/poll.c:29
+  5    Thread 0x7fffcdb89700 (LWP 6767) "QDBusConnection" 0x00007ffff13d43ff in __GI___poll (fds=0x7fffc4004e60, nfds=3, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+  6    Thread 0x7fffcd1e8700 (LWP 6768) "QQmlThread"      0x00007ffff13d43ff in __GI___poll (fds=0x7fffb8004e60, nfds=1, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+  7    Thread 0x7fffbfbff700 (LWP 6769) "QThread"         0x00007ffff13d43ff in __GI___poll (fds=0x7fffb4004a60, nfds=1, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+  9    Thread 0x7fffb2b52700 (LWP 6774) "qfield"          futex_wait_cancelable (private=0, expected=0, futex_word=0x7fffefab7e70) at ../sysdeps/nptl/futex-internal.h:186
+  41   Thread 0x7fff6bffd700 (LWP 6806) "FeatureExpressi" __GI___libc_read (nbytes=512, buf=0x7fff5c00f6a0, fd=317) at ../sysdeps/unix/sysv/linux/read.c:26
+  44   Thread 0x7fff53fff700 (LWP 6809) "FeatureExpressi" syscall () at ../sysdeps/unix/sysv/linux/x86_64/syscall.S:38
+  47   Thread 0x7fff6a7fa700 (LWP 6812) "FeatureExpressi" __GI___libc_read (nbytes=512, buf=0x7fff5478f4c8, fd=327) at ../sysdeps/unix/sysv/linux/read.c:26
+  50   Thread 0x7fff537fe700 (LWP 6815) "FeatureExpressi" __GI___libc_read (nbytes=512, buf=0x7fff6402df50, fd=315) at ../sysdeps/unix/sysv/linux/read.c:26
+  53   Thread 0x7fff52ffd700 (LWP 6818) "FeatureExpressi" syscall () at ../sysdeps/unix/sysv/linux/x86_64/syscall.S:38
+  56   Thread 0x7fff51ffb700 (LWP 6821) "FeatureExpressi" syscall () at ../sysdeps/unix/sysv/linux/x86_64/syscall.S:38
+  59   Thread 0x7fff68ff7700 (LWP 6824) "FeatureExpressi" syscall () at ../sysdeps/unix/sysv/linux/x86_64/syscall.S:38
+  62   Thread 0x7fff517fa700 (LWP 6827) "FeatureExpressi" __GI___libc_read (nbytes=512, buf=0x7fff58b15560, fd=322) at ../sysdeps/unix/sysv/linux/read.c:26
+* 65   Thread 0x7fff50ff9700 (LWP 6830) "FeatureExpressi" 0x0000555500000001 in ?? ()
+  68   Thread 0x7fff2ffff700 (LWP 6833) "FeatureExpressi" syscall () at ../sysdeps/unix/sysv/linux/x86_64/syscall.S:38
+
+(gdb) thread 1
+[Switching to thread 1 (Thread 0x7fffe427a340 (LWP 6763))]
+#0  __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:50
+50      ../sysdeps/unix/sysv/linux/raise.c: No such file or directory.
+
+(gdb) bt
+#0  __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:50
+#1  0x00007ffff1306537 in __GI_abort () at abort.c:79
+#2  0x00007ffff1861bf1 in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#3  0x00007ffff18624ab in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#4  0x0000555555659a82 in FeatureExpressionValuesGatherer::~FeatureExpressionValuesGatherer() (this=0x55556581be30, __in_chrg=<optimized out>)
+    at /home/alban/QField/build-master/src/core/qfield_core_autogen/EWIEGA46WW/../../../../../src/core/fieldexpressionvaluesgatherer.h:34
+#5  0x0000555555659a9e in FeatureExpressionValuesGatherer::~FeatureExpressionValuesGatherer() (this=0x55556581be30, __in_chrg=<optimized out>)
+    at /home/alban/QField/build-master/src/core/qfield_core_autogen/EWIEGA46WW/../../../../../src/core/fieldexpressionvaluesgatherer.h:34
+#6  0x00007ffff1aa9daf in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#7  0x00007ffff254215f in QApplicationPrivate::notify_helper(QObject*, QEvent*) () at /lib/x86_64-linux-gnu/libQt5Widgets.so.5
+#8  0x00007ffff5f26d59 in QgsApplication::notify(QObject*, QEvent*) (this=0x7fffffffe2f0, receiver=0x55556581be30, event=0x55556b2a0320) at /home/alban/QGIS/src/core/qgsapplication.cpp:507
+#9  0x00007ffff1a7dfca in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#10 0x00007ffff1a80a01 in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#11 0x00007ffff1ad5e93 in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#12 0x00007fffea67fe6b in g_main_context_dispatch () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#13 0x00007fffea680118 in  () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#14 0x00007fffea6801cf in g_main_context_iteration () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#15 0x00007ffff1ad551f in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#16 0x00007ffff1a7c98b in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#17 0x00007ffff1a84c00 in  () at /lib/x86_64-linux-gnu/libQt5Core.so.5
+#18 0x00005555555b237e in main(int, char**) (argc=1, argv=0x7fffffffe508) at /home/alban/QField/src/app/main.cpp:157
+
+
+
+Comments
+1. The error message indicates that the FeatureListModel::mGatherer is destroyed while FeatureExpresssionValuesGatherer is still running
+
+2. The destructor of FeatureExpressionValuesGatherer is called in processFeatureList, and perhaps when the program is destroyed
+
+3. processFeatureList is only called when the thread has exited.  There is no reference to processFeatureList in the backtraces.
+
+4. As a conclusion, the error message is not a cause of the SIGSEV. (but may be a consequence)
+
+
+After various runs under debugger, it seems that SIGSEV always happens when editing field PROPPHONE and in QgsExpression::prepare involving mRootNode. (QgsExpressionPrivate(), in initializing mRootNode)
+
